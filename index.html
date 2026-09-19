@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kenny Software · Access Portal</title>
+  <meta name="description" content="Kenny Software 企业级接入门户：统一认证、套餐授权与多线路管理。稳定接入，持续在线。" />
+  <meta name="theme-color" content="#f2f4f8" />
+  <meta property="og:title" content="Kenny Software · Access Portal" />
+  <meta property="og:description" content="统一认证、套餐授权与线路管理集中在一个门户，为长期运行的正式业务而设计。" />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  <style>
+    :root {
+      --ink: #0a101c;
+      --muted: #5b6880;
+      --muted-2: #98a3b5;
+      --tint: #2f5bd0;
+      --ok: #046c4e;
+      --canvas: #f2f4f8;
+      --paper: #ffffff;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --shell: 1120px;
+      --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+        "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      color: var(--ink);
+      background: var(--canvas);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    img, svg { display: block; }
+    .shell { width: min(var(--shell), calc(100% - 40px)); margin-inline: auto; }
+
+    .atmos {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(1100px 520px at 50% -8%, rgba(255,255,255,.98), rgba(255,255,255,0) 68%),
+        radial-gradient(760px 340px at 50% 2%, rgba(37,99,235,.05), transparent 66%),
+        linear-gradient(180deg, #f7f9fc 0%, #edf0f6 44%, #e4e9f1 100%);
+    }
+    .pg { position: relative; z-index: 1; }
+
+    .bar {
+      position: sticky; top: 0; z-index: 50;
+      background: transparent; border-bottom: 1px solid transparent;
+      transition: background .35s var(--ease), border-color .35s var(--ease), backdrop-filter .35s var(--ease);
+    }
+    .bar.is-stuck {
+      background: rgba(250,251,253,.72);
+      border-bottom-color: rgba(15,23,42,.08);
+      backdrop-filter: saturate(1.6) blur(18px);
+      -webkit-backdrop-filter: saturate(1.6) blur(18px);
+    }
+    .bar-in {
+      height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .logo { display: inline-flex; align-items: center; gap: 10px; }
+    .logo-mark {
+      width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center;
+      background: linear-gradient(145deg, #1c2434, #0c1018); color: #fffefb;
+      font-size: 13px; font-weight: 700;
+      box-shadow: 0 1px 2px rgba(10,15,28,.28), inset 0 1px 0 rgba(255,255,255,.14);
+    }
+    .logo-name { font-size: 14.5px; font-weight: 650; letter-spacing: -.015em; }
+    .logo-sub { font-size: 10.5px; color: var(--muted-2); margin-top: -2px; }
+    .nav { display: flex; align-items: center; gap: 4px; font-size: 13.5px; }
+    .nav a, .lang {
+      padding: 7px 11px; border-radius: 9px; color: #334155;
+      background: none; border: 0; font: inherit; cursor: pointer;
+    }
+    .nav a:hover, .lang:hover { background: rgba(15,23,42,.05); }
+    .nav .cta {
+      margin-left: 6px; padding: 8px 14px; color: #fff;
+      background: linear-gradient(178deg, #182131, #090e18); border-radius: 9px;
+    }
+    .lang { color: var(--muted); letter-spacing: .04em; }
+
+    .hero { padding: 52px 0 0; text-align: center; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px; height: 30px;
+      padding: 0 13px 0 5px; border-radius: 999px; font-size: 12.5px; color: #55617a;
+      background: rgba(255,255,255,.78); border: 1px solid rgba(15,23,42,.07);
+      box-shadow: 0 1px 2px rgba(15,23,42,.04), inset 0 1px 0 rgba(255,255,255,.9);
+    }
+    .eyebrow b {
+      display: inline-flex; align-items: center; gap: 7px; height: 22px; padding: 0 9px 0 8px;
+      border-radius: 999px; font-size: 11.5px; font-weight: 600; color: var(--ok); background: #e7f5ef;
+    }
+    .dot {
+      width: 5px; height: 5px; border-radius: 50%; background: #0ea06f; position: relative;
+    }
+    .dot::after {
+      content: ""; position: absolute; inset: -2px; border-radius: 50%;
+      border: 1px solid rgba(14,160,111,.6); animation: ring 2.8s var(--ease) infinite;
+    }
+    @keyframes ring {
+      0% { transform: scale(.7); opacity: .9; }
+      70%, 100% { transform: scale(2.6); opacity: 0; }
+    }
+    .hero h1 {
+      margin: 26px auto 0; max-width: 16ch;
+      font-size: clamp(38px, 5.6vw, 58px); line-height: 1.08;
+      letter-spacing: -.018em; font-weight: 700;
+      background: linear-gradient(176deg, #0a101c 12%, #27324a 96%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero h1 span { display: block; }
+    .lede {
+      margin: 20px auto 0; max-width: 38ch;
+      font-size: clamp(14.5px, 1.6vw, 16px); line-height: 1.78; color: var(--muted);
+    }
+    .cta-row {
+      display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 28px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 12px 22px; border-radius: 11px; font-size: 14px; font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .btn-primary {
+      color: #fff;
+      background: linear-gradient(178deg, #182131, #090e18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 8px 18px -8px rgba(9,14,24,.5);
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,.82); border-color: rgba(15,23,42,.1); color: var(--ink);
+      box-shadow: 0 1px 2px rgba(15,23,42,.04), inset 0 1px 0 #fff;
+    }
+    .note { margin-top: 16px; font-size: 12.5px; color: var(--muted-2); }
+
+    .stage { position: relative; z-index: 3; margin-top: 46px; margin-bottom: -170px; }
+    .frame {
+      border-radius: 16px; overflow: hidden; background: #0a101c; text-align: left;
+      box-shadow:
+        0 0 0 1px rgba(10,16,28,.9), 0 0 0 6px rgba(255,255,255,.55),
+        0 44px 70px -28px rgba(15,23,42,.26), 0 90px 130px -60px rgba(23,45,102,.34);
+    }
+    .panel {
+      background:
+        radial-gradient(760px 260px at 16% -24%, rgba(59,130,246,.18), transparent 60%),
+        linear-gradient(168deg, #121a2b 0%, #0d1422 50%, #080d16 100%);
+    }
+    .panel-bar {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 18px 11px; border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .dots { display: flex; gap: 6px; }
+    .dots i { width: 8px; height: 8px; border-radius: 50%; }
+    .dots i:nth-child(1) { background: #b9776c; }
+    .dots i:nth-child(2) { background: #b9a06c; }
+    .dots i:nth-child(3) { background: #6f9d7f; }
+    .path {
+      font-size: 11.5px; color: rgba(255,255,255,.38);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .live {
+      margin-left: auto; display: inline-flex; align-items: center; gap: 7px;
+      font-size: 10px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+      color: rgba(110,231,183,.9);
+    }
+    .live i { width: 5px; height: 5px; border-radius: 50%; background: #4ade80; }
+    .ov { display: grid; grid-template-columns: 1.24fr .76fr; }
+    .ov-main { padding: 28px 30px 22px; border-right: 1px solid rgba(255,255,255,.06); }
+    .ov-k { font-size: 10px; font-weight: 650; letter-spacing: .15em; text-transform: uppercase; color: rgba(255,255,255,.36); }
+    .ov-v { font-size: 32px; font-weight: 700; letter-spacing: -.03em; color: #6ee7b7; margin: 12px 0 7px; }
+    .ov-s { font-size: 12.5px; color: rgba(255,255,255,.42); }
+    .chart { display: block; width: 100%; height: 78px; margin-top: 24px; }
+    .ov-side { padding: 24px 22px 18px; }
+    .nodes { list-style: none; margin-top: 15px; display: grid; gap: 7px; }
+    .nodes li {
+      display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px;
+      background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.05);
+      font-size: 12.5px; color: rgba(255,255,255,.82);
+    }
+    .nodes .d { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.13); }
+    .nodes .d.idle { background: #d9a94f; box-shadow: 0 0 0 3px rgba(217,169,79,.14); }
+    .nodes .nm { flex: 1; }
+    .nodes b { margin-left: auto; font-weight: 500; font-size: 11.5px; color: rgba(255,255,255,.46); }
+    .ov-foot {
+      display: grid; grid-template-columns: repeat(3, minmax(0,1fr));
+      border-top: 1px solid rgba(255,255,255,.06); background: rgba(0,0,0,.22);
+    }
+    .ov-foot > div { padding: 15px 20px 16px; border-right: 1px solid rgba(255,255,255,.05); }
+    .ov-foot > div:last-child { border-right: 0; }
+    .ov-foot small { display: block; font-size: 10px; font-weight: 650; letter-spacing: .13em; text-transform: uppercase; color: rgba(255,255,255,.32); }
+    .ov-foot strong { display: block; margin-top: 6px; font-size: 17px; font-weight: 650; color: #fff; }
+
+    .plane {
+      position: relative; z-index: 1; background: var(--paper);
+      border-top: 1px solid rgba(15,23,42,.07);
+      box-shadow: 0 -24px 44px -28px rgba(15,23,42,.14);
+      padding: 230px 0 0;
+    }
+    .sec { padding: 8px 0 8px; }
+    .sec-head { max-width: 44ch; margin: 0 auto 46px; text-align: center; }
+    .sec-k {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 10.5px; font-weight: 650; letter-spacing: .16em; text-transform: uppercase; color: var(--tint);
+    }
+    .sec-k::before { content: ""; width: 16px; height: 1px; background: currentColor; opacity: .45; }
+    .sec-h {
+      font-size: clamp(25px, 3.2vw, 34px); font-weight: 700; letter-spacing: -.02em;
+      line-height: 1.2; margin: 14px 0 12px;
+    }
+    .sec-p { color: var(--muted); font-size: 14.5px; line-height: 1.78; }
+
+    .cap { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); border-top: 1px solid rgba(15,23,42,.08); }
+    .cap-item {
+      position: relative; padding: 38px 28px 44px;
+      border-left: 1px solid rgba(15,23,42,.07);
+    }
+    .cap-item:first-child { border-left: 0; padding-left: 4px; }
+    .cap-item:nth-child(4) { border-left: 0; padding-left: 4px; border-top: 1px solid rgba(15,23,42,.07); }
+    .cap-item:nth-child(5), .cap-item:nth-child(6) { border-top: 1px solid rgba(15,23,42,.07); }
+    .cap-n { font-size: 10.5px; font-weight: 700; letter-spacing: .16em; color: #9aa5b8; }
+    .cap-ico {
+      width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+      margin: 20px 0 18px; color: #24314a;
+      background: linear-gradient(180deg, #fff, #f2f5f9);
+      border: 1px solid rgba(15,23,42,.08);
+    }
+    .cap-ico svg { width: 17px; height: 17px; }
+    .cap-item h3 { font-size: 15.5px; font-weight: 650; margin-bottom: 10px; }
+    .cap-item p { font-size: 13.5px; line-height: 1.8; color: var(--muted); }
+
+    .lines { display: grid; grid-template-columns: 1.1fr .9fr; gap: 18px; }
+    .line-card, .step, .plan, .dl, .faq-item {
+      background: #fff; border: 1px solid rgba(15,23,42,.08); border-radius: 16px;
+      box-shadow: 0 1px 2px rgba(15,23,42,.04);
+    }
+    .line-card { padding: 22px 22px 20px; }
+    .line-card h3 { font-size: 16px; margin: 8px 0 8px; }
+    .line-card p { font-size: 13.5px; color: var(--muted); line-height: 1.75; }
+    .tag {
+      display: inline-flex; font-size: 10.5px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--tint); background: rgba(47,91,208,.08);
+      padding: 4px 8px; border-radius: 999px;
+    }
+    .tag.gold { color: #8a6a1c; background: rgba(185,150,86,.14); }
+    .tag.green { color: var(--ok); background: #e7f5ef; }
+
+    .steps { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; }
+    .step { padding: 22px 20px 24px; }
+    .step b {
+      display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px;
+      font-size: 12px; background: #0a101c; color: #fff; margin-bottom: 14px;
+    }
+    .step h3 { font-size: 15px; margin-bottom: 8px; }
+    .step p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+    .plans { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 12px; }
+    .plan { padding: 22px 18px 20px; position: relative; }
+    .plan.featured {
+      background: #0a101c; color: #fff; border-color: #0a101c;
+      box-shadow: 0 18px 40px -20px rgba(10,16,28,.55);
+    }
+    .plan-flag {
+      position: absolute; top: 12px; right: 12px;
+      font-size: 10px; font-weight: 700; letter-spacing: .08em;
+      padding: 3px 8px; border-radius: 999px; background: #e7f5ef; color: var(--ok);
+    }
+    .plan.featured .plan-flag { background: rgba(110,231,183,.16); color: #6ee7b7; }
+    .plan-name { font-size: 14px; font-weight: 650; }
+    .plan-price { font-size: 26px; font-weight: 700; letter-spacing: -.03em; margin: 10px 0 4px; }
+    .plan-price small { font-size: 12px; font-weight: 500; color: var(--muted); }
+    .plan.featured .plan-price small { color: rgba(255,255,255,.45); }
+    .plan-meta { font-size: 12.5px; color: var(--muted); }
+    .plan.featured .plan-meta { color: rgba(255,255,255,.5); }
+    .cn2 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-top: 14px; }
+    .price-note { margin-top: 16px; text-align: center; font-size: 12.5px; color: var(--muted-2); }
+
+    .dls { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+    .dl { padding: 20px 18px; display: flex; flex-direction: column; gap: 8px; min-height: 148px; }
+    .dl strong { font-size: 15px; }
+    .dl span { font-size: 12.5px; color: var(--muted); flex: 1; }
+    .dl em { font-style: normal; font-size: 12.5px; font-weight: 650; color: var(--tint); }
+
+    .faq { display: grid; gap: 10px; max-width: 760px; margin: 0 auto; }
+    .faq-item { padding: 0; overflow: hidden; }
+    .faq-item summary {
+      list-style: none; cursor: pointer; padding: 16px 20px; font-weight: 650; font-size: 14.5px;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item p { padding: 0 20px 18px; font-size: 13.5px; color: var(--muted); line-height: 1.75; }
+
+    .well {
+      margin: 72px 0 0; padding: 62px 40px 66px; text-align: center; border-radius: 20px;
+      background: linear-gradient(180deg, #eef1f6 0%, #f4f6fa 62%, #f7f9fc 100%);
+      box-shadow: inset 0 1px 3px rgba(15,23,42,.07), inset 0 0 0 1px rgba(15,23,42,.05);
+    }
+    .well h2 { font-size: clamp(24px, 3.2vw, 32px); font-weight: 700; letter-spacing: -.02em; }
+    .well p { margin: 14px auto 30px; max-width: 38ch; color: var(--muted); font-size: 14.5px; line-height: 1.78; }
+
+    .foot {
+      margin-top: 40px; padding: 26px 0 44px;
+      border-top: 1px solid rgba(15,23,42,.07);
+      display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+      font-size: 12.5px; color: var(--muted-2);
+    }
+    .foot strong { color: #64748b; font-weight: 650; }
+
+    .rv { opacity: 0; transform: translateY(16px); transition: opacity .8s var(--ease), transform .8s var(--ease); }
+    .rv.in { opacity: 1; transform: none; }
+
+    @media (max-width: 980px) {
+      .ov { grid-template-columns: 1fr; }
+      .ov-main { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+      .cap, .lines, .steps, .plans, .cn2, .dls { grid-template-columns: 1fr 1fr; }
+      .cap-item { border-left: 0; border-top: 1px solid rgba(15,23,42,.07); padding: 28px 8px; }
+      .cap-item:first-child { border-top: 0; }
+      .stage { margin-bottom: -120px; }
+      .plane { padding-top: 170px; }
+      .nav a:not(.cta) { display: none; }
+    }
+    @media (max-width: 640px) {
+      .cap, .lines, .steps, .plans, .cn2, .dls { grid-template-columns: 1fr; }
+      .ov-foot { grid-template-columns: 1fr; }
+      .ov-foot > div { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+      .hero h1 { max-width: none; }
+      .well { padding: 44px 22px 48px; }
+      .stage { margin-bottom: -88px; }
+      .plane { padding-top: 130px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .rv { opacity: 1; transform: none; }
+      .dot::after { animation: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="atmos" aria-hidden="true"></div>
+<div class="pg">
+
+<header class="bar" id="bar">
+  <div class="shell bar-in">
+    <a class="logo" href="./">
+      <div class="logo-mark">K</div>
+      <div>
+        <div class="logo-name">Kenny Software</div>
+        <div class="logo-sub">Access Portal</div>
+      </div>
+    </a>
+    <nav class="nav">
+      <a href="#capability" data-i18n="nav.cap">能力</a>
+      <a href="#lines" data-i18n="nav.lines">线路</a>
+      <a href="#plans" data-i18n="nav.plans">套餐</a>
+      <a href="#download" data-i18n="nav.dl">客户端</a>
+      <button class="lang" type="button" id="langBtn">EN</button>
+      <a class="cta" href="https://sg.kennysoftware.com/auth/login.php" data-i18n="nav.enter">进入门户</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="shell">
+    <a class="eyebrow" href="https://sg.kennysoftware.com/auth/login.php">
+      <b><i class="dot" aria-hidden="true"></i><span data-i18n="hero.live">服务运行中</span></b>
+      <span data-i18n="hero.ready">多节点线路已全部就绪</span>
+    </a>
+    <h1 data-i18n-html="hero.title">稳定接入<span>持续在线</span></h1>
+    <p class="lede" data-i18n-html="hero.lede">高速稳定接入，主线路基于 VLESS。<br />统一认证、套餐授权与线路管理集中在一个门户。</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://sg.kennysoftware.com/auth/login.php"><span data-i18n="cta.enter">进入门户</span> →</a>
+      <a class="btn btn-ghost" href="https://sg.kennysoftware.com/auth/register.php" data-i18n="cta.create">创建账户</a>
+    </div>
+    <p class="note" data-i18n="hero.note">未开通套餐也可登录查看账户状态</p>
+  </div>
+</section>
+
+<div class="stage">
+  <div class="shell">
+    <div class="frame">
+      <div class="panel">
+        <div class="panel-bar">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <div class="path">portal / overview</div>
+          <div class="live"><i></i> live</div>
+        </div>
+        <div class="ov">
+          <div class="ov-main">
+            <div class="ov-k" data-i18n="ov.status">授权状态</div>
+            <div class="ov-v">Active</div>
+            <div class="ov-s" data-i18n="ov.sub">订阅生效中 · 线路已全部就绪</div>
+            <svg class="chart" viewBox="0 0 400 78" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="ovFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#7dd3fc" stop-opacity="0.3"/>
+                  <stop offset="1" stop-color="#7dd3fc" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0 56 C 36 52, 58 31, 88 35 S 138 62, 176 43 S 250 16, 296 31 S 356 53, 400 25 V78 H0 Z" fill="url(#ovFill)"/>
+              <path d="M0 56 C 36 52, 58 31, 88 35 S 138 62, 176 43 S 250 16, 296 31 S 356 53, 400 25" fill="none" stroke="#93c5fd" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="ov-side">
+            <div class="ov-k" data-i18n="ov.routes">线路</div>
+            <ul class="nodes">
+              <li><i class="d"></i><span class="nm">Singapore</span><b>12 ms</b></li>
+              <li><i class="d"></i><span class="nm">Hong Kong</span><b>28 ms</b></li>
+              <li><i class="d"></i><span class="nm">Tokyo</span><b>41 ms</b></li>
+              <li><i class="d idle"></i><span class="nm">Los Angeles</span><b>118 ms</b></li>
+            </ul>
+          </div>
+        </div>
+        <div class="ov-foot">
+          <div><small data-i18n="ov.avail">可用性</small><strong>24 / 7</strong></div>
+          <div><small data-i18n="ov.term">终端</small><strong data-i18n="ov.termv">全平台</strong></div>
+          <div><small data-i18n="ov.node">节点</small><strong data-i18n="ov.nodev">多出口</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="plane">
+<div class="shell">
+
+  <section class="sec" id="capability">
+    <div class="sec-head rv">
+      <div class="sec-k">Capability</div>
+      <h2 class="sec-h" data-i18n="cap.title">为长期运行而构建</h2>
+      <p class="sec-p" data-i18n="cap.lede">不追求参数堆砌，只关注每天都要用到的事：连得上、管得住、不掉线。</p>
+    </div>
+    <div class="cap rv">
+      <article class="cap-item">
+        <div class="cap-n">01</div>
+        <div class="cap-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6.2v5.1c0 4.6 3.1 8.6 7.5 9.7 4.4-1.1 7.5-5.1 7.5-9.7V6.2L12 3Z"/><path d="m9.2 12 2 2 3.6-3.8"/></svg></div>
+        <h3 data-i18n="cap.1t">安全传输</h3>
+        <p data-i18n="cap.1p">加密隧道与身份校验贯穿整条链路，适用于远程办公、跨区域访问与内网资源连接。</p>
+      </article>
+      <article class="cap-item">
+        <div class="cap-n">02</div>
+        <div class="cap-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.6"/><path d="M3.5 9.5h17M8 14h4"/></svg></div>
+        <h3 data-i18n="cap.2t">统一管理</h3>
+        <p data-i18n="cap.2p">订阅、卡密、绑定与连接状态集中在同一门户，授权变更实时可见，不必来回切换。</p>
+      </article>
+      <article class="cap-item">
+        <div class="cap-n">03</div>
+        <div class="cap-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3 4.5 13.5H11L10.5 21 19.5 10.5H13L13 3Z"/></svg></div>
+        <h3 data-i18n="cap.3t">持续在线</h3>
+        <p data-i18n="cap.3p">以长期稳定为目标维护线路与节点，减少中断、重连与反复手动切换的成本。</p>
+      </article>
+      <article class="cap-item">
+        <div class="cap-n">04</div>
+        <div class="cap-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3v18M3.5 12h17"/></svg></div>
+        <h3 data-i18n="cap.4t">多出口线路</h3>
+        <p data-i18n="cap.4p">新加坡、香港等多出口可选。日常走高端线路，需要时再切换专线或备用路径。</p>
+      </article>
+      <article class="cap-item">
+        <div class="cap-n">05</div>
+        <div class="cap-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2.2"/><path d="M9 17.5h6"/></svg></div>
+        <h3 data-i18n="cap.5t">全平台客户端</h3>
+        <p data-i18n="cap.5p">Windows / Android / iOS / macOS。门户内扫码或复制链接即可导入，按系统推荐对应客户端。</p>
+      </article>
+      <article class="cap-item">
+        <div class="cap-n">06</div>
+        <div class="cap-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5a9.5 9.5 0 0 1 16 0M7.2 15.7a5.4 5.4 0 0 1 9.6 0"/><circle cx="12" cy="19" r="1.1" fill="currentColor" stroke="none"/></svg></div>
+        <h3 data-i18n="cap.6t">实时连接状态</h3>
+        <p data-i18n="cap.6p">仪表盘显示在线会话、上下行与出口信息，授权到账后通常数分钟内自动同步。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec" id="lines" style="padding-top:72px">
+    <div class="sec-head rv">
+      <div class="sec-k">Routes</div>
+      <h2 class="sec-h" data-i18n="ln.title">按场景选择线路</h2>
+      <p class="sec-p" data-i18n="ln.lede">一条主路径覆盖日常使用，其余线路按需要启用，互不影响额度与授权。</p>
+    </div>
+    <div class="lines rv">
+      <article class="line-card">
+        <span class="tag" data-i18n="ln.rec">推荐日常</span>
+        <h3>Gost Reality</h3>
+        <p data-i18n="ln.gost">主协议 VLESS + Reality。高端线路经香港入口进入新加坡出口，门户内一键复制或扫码导入。</p>
+      </article>
+      <article class="line-card">
+        <span class="tag gold">CN2 GIA</span>
+        <h3 data-i18n="ln.cn2t">CN2 特快专线</h3>
+        <p data-i18n="ln.cn2p">按流量单独计费，与套餐时长互不影响。适合对链路质量更敏感的访问场景。</p>
+      </article>
+      <article class="line-card">
+        <span class="tag green" data-i18n="ln.ispk">高可信出口</span>
+        <h3 data-i18n="ln.ispt">ISP 住宅线路</h3>
+        <p data-i18n="ln.ispp">新加坡高可信度 ISP 出口，独立额度。用尽后可切回主线路，不影响其他路径。</p>
+      </article>
+      <article class="line-card">
+        <span class="tag" data-i18n="ln.bak">备用对照</span>
+        <h3 data-i18n="ln.clt">经典中继</h3>
+        <p data-i18n="ln.clp">香港中继至新加坡出口，用于对照测试或主线路异常时的切换。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec" id="start" style="padding-top:72px">
+    <div class="sec-head rv">
+      <div class="sec-k">Get started</div>
+      <h2 class="sec-h" data-i18n="st.title">四步开始使用</h2>
+      <p class="sec-p" data-i18n="st.lede">从注册到连接，全程在同一个门户完成。</p>
+    </div>
+    <div class="steps rv">
+      <article class="step"><b>1</b><h3 data-i18n="st.1t">创建账户</h3><p data-i18n="st.1p">用邮箱注册门户账号，未开通套餐也可以先登录查看状态。</p></article>
+      <article class="step"><b>2</b><h3 data-i18n="st.2t">开通授权</h3><p data-i18n="st.2p">按周期购买套餐，或输入已购卡密激活。支持 PayPal、微信与支付宝。</p></article>
+      <article class="step"><b>3</b><h3 data-i18n="st.3t">下载客户端</h3><p data-i18n="st.3p">Windows / Android 使用 Hiddify，iPhone 与 Mac 使用 Streisand。</p></article>
+      <article class="step"><b>4</b><h3 data-i18n="st.4t">导入并连接</h3><p data-i18n="st.4p">在连接页扫码或复制链接导入，授权同步后即可使用。</p></article>
+    </div>
+  </section>
+
+  <section class="sec" id="plans" style="padding-top:72px">
+    <div class="sec-head rv">
+      <div class="sec-k">Plans</div>
+      <h2 class="sec-h" data-i18n="pl.title">按使用周期授权</h2>
+      <p class="sec-p" data-i18n="pl.lede">包年包月不限流量。支付完成后系统自动把时长同步到当前账户。</p>
+    </div>
+    <div class="plans rv">
+      <article class="plan"><div class="plan-name" data-i18n="pl.1m">1 个月</div><div class="plan-price">$12.99 <small>USD</small></div><div class="plan-meta" data-i18n="pl.unl">30 天 · 不限流量</div></article>
+      <article class="plan"><div class="plan-name" data-i18n="pl.2m">2 个月</div><div class="plan-price">$20.99 <small>USD</small></div><div class="plan-meta">60 天 · 不限流量</div></article>
+      <article class="plan"><div class="plan-name" data-i18n="pl.q">一季度</div><div class="plan-price">$27.99 <small>USD</small></div><div class="plan-meta">90 天 · 不限流量</div></article>
+      <article class="plan"><div class="plan-name" data-i18n="pl.h">半年</div><div class="plan-price">$54.99 <small>USD</small></div><div class="plan-meta">180 天 · 不限流量</div></article>
+      <article class="plan featured"><div class="plan-flag" data-i18n="pl.rec">推荐</div><div class="plan-name" data-i18n="pl.y">一年</div><div class="plan-price">$99.99 <small>USD</small></div><div class="plan-meta" data-i18n="pl.yv">365 天 · 平均成本更低</div></article>
+    </div>
+    <div class="cn2 rv">
+      <article class="plan"><div class="plan-flag">CN2</div><div class="plan-name">CN2 · 5 GB</div><div class="plan-price">$9.90 <small>USD</small></div><div class="plan-meta" data-i18n="pl.m">当月有效 · 按流量计费</div></article>
+      <article class="plan"><div class="plan-flag">CN2</div><div class="plan-name">CN2 · 10 GB</div><div class="plan-price">$18.80 <small>USD</small></div><div class="plan-meta" data-i18n="pl.m">当月有效 · 按流量计费</div></article>
+      <article class="plan"><div class="plan-flag">CN2</div><div class="plan-name">CN2 · 30 GB</div><div class="plan-price">$49.90 <small>USD</small></div><div class="plan-meta" data-i18n="pl.m">当月有效 · 按流量计费</div></article>
+    </div>
+    <p class="price-note" data-i18n="pl.note">价格以门户结算页为准。也可使用站内卡密激活。</p>
+  </section>
+
+  <section class="sec" id="download" style="padding-top:72px">
+    <div class="sec-head rv">
+      <div class="sec-k">Clients</div>
+      <h2 class="sec-h" data-i18n="dl.title">各系统客户端</h2>
+      <p class="sec-p" data-i18n="dl.lede">先安装客户端，再回到门户扫码导入。安装包由官方下载源提供。</p>
+    </div>
+    <div class="dls rv">
+      <a class="dl" href="https://download.kennysoftware.com/files/exe/Hiddify-Windows-Setup-x64.exe">
+        <strong>Windows</strong>
+        <span>Hiddify Setup x64</span>
+        <em data-i18n="dl.get">立即下载 →</em>
+      </a>
+      <a class="dl" href="https://download.kennysoftware.com/files/apk/Hiddify-Android-universal.apk">
+        <strong>Android</strong>
+        <span>Hiddify Universal APK</span>
+        <em data-i18n="dl.get">立即下载 →</em>
+      </a>
+      <a class="dl" href="https://apps.apple.com/us/app/streisand/id6450534064" rel="noopener" target="_blank">
+        <strong>iPhone / iPad</strong>
+        <span>Streisand · App Store</span>
+        <em data-i18n="dl.store">前往下载 →</em>
+      </a>
+      <a class="dl" href="https://apps.apple.com/us/app/streisand/id6450534064" rel="noopener" target="_blank">
+        <strong>macOS</strong>
+        <span data-i18n="dl.mac">Streisand · 需 Apple 芯片 Mac</span>
+        <em data-i18n="dl.store">前往下载 →</em>
+      </a>
+    </div>
+  </section>
+
+  <section class="sec" id="faq" style="padding-top:72px">
+    <div class="sec-head rv">
+      <div class="sec-k">FAQ</div>
+      <h2 class="sec-h" data-i18n="fq.title">常见问题</h2>
+    </div>
+    <div class="faq rv">
+      <details class="faq-item" open>
+        <summary data-i18n="fq.1q">未开通套餐可以登录吗？</summary>
+        <p data-i18n="fq.1a">可以。登录后即可查看账户与授权状态；连接功能在套餐或卡密生效后开放。</p>
+      </details>
+      <details class="faq-item">
+        <summary data-i18n="fq.2q">支持哪些付款方式？</summary>
+        <p data-i18n="fq.2a">可直接使用 PayPal；也可在站内购卡页用微信 / 支付宝下单，支付后在同一流程激活卡密。</p>
+      </details>
+      <details class="faq-item">
+        <summary data-i18n="fq.3q">付款后多久生效？</summary>
+        <p data-i18n="fq.3a">支付或激活成功后，系统会自动同步授权，通常数分钟内生效。</p>
+      </details>
+      <details class="faq-item">
+        <summary data-i18n="fq.4q">授权或支付异常怎么办？</summary>
+        <p data-i18n="fq.4a">请联系管理员 admin@kennysoftware.cn，说明门户用户名与大致时间即可协助处理。</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="well rv">
+    <h2 data-i18n="end.title">现在开始使用</h2>
+    <p data-i18n="end.lede">登录后即可查看授权状态、购买或兑换套餐，并获取连接信息。</p>
+    <div class="cta-row" style="margin-top:0">
+      <a class="btn btn-primary" href="https://sg.kennysoftware.com/auth/login.php"><span data-i18n="cta.login">登录门户</span> →</a>
+      <a class="btn btn-ghost" href="https://sg.kennysoftware.com/auth/register.php" data-i18n="cta.create">创建账户</a>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div>© <span id="y"></span> <strong>Kenny Software</strong>. All Rights Reserved.</div>
+    <div>Access Portal · Secure Connectivity</div>
+  </footer>
+</div>
+</div>
+</div>
+
+<script>
+(function () {
+  document.getElementById('y').textContent = new Date().getFullYear();
+  var bar = document.getElementById('bar');
+  var onScroll = function () { bar.classList.toggle('is-stuck', window.scrollY > 8); };
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  var items = document.querySelectorAll('.rv');
+  if (!('IntersectionObserver' in window)) {
+    items.forEach(function (el) { el.classList.add('in'); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
+    items.forEach(function (el) { io.observe(el); });
+  }
+
+  var dict = {
+    zh: {
+      'nav.cap': '能力', 'nav.lines': '线路', 'nav.plans': '套餐', 'nav.dl': '客户端', 'nav.enter': '进入门户',
+      'hero.live': '服务运行中', 'hero.ready': '多节点线路已全部就绪',
+      'hero.title': '稳定接入<span>持续在线</span>',
+      'hero.lede': '高速稳定接入，主线路基于 VLESS。<br />统一认证、套餐授权与线路管理集中在一个门户。',
+      'hero.note': '未开通套餐也可登录查看账户状态',
+      'cta.enter': '进入门户', 'cta.create': '创建账户', 'cta.login': '登录门户',
+      'ov.status': '授权状态', 'ov.sub': '订阅生效中 · 线路已全部就绪', 'ov.routes': '线路',
+      'ov.avail': '可用性', 'ov.term': '终端', 'ov.termv': '全平台', 'ov.node': '节点', 'ov.nodev': '多出口',
+      'cap.title': '为长期运行而构建',
+      'cap.lede': '不追求参数堆砌，只关注每天都要用到的事：连得上、管得住、不掉线。',
+      'cap.1t': '安全传输', 'cap.1p': '加密隧道与身份校验贯穿整条链路，适用于远程办公、跨区域访问与内网资源连接。',
+      'cap.2t': '统一管理', 'cap.2p': '订阅、卡密、绑定与连接状态集中在同一门户，授权变更实时可见，不必来回切换。',
+      'cap.3t': '持续在线', 'cap.3p': '以长期稳定为目标维护线路与节点，减少中断、重连与反复手动切换的成本。',
+      'cap.4t': '多出口线路', 'cap.4p': '新加坡、香港等多出口可选。日常走高端线路，需要时再切换专线或备用路径。',
+      'cap.5t': '全平台客户端', 'cap.5p': 'Windows / Android / iOS / macOS。门户内扫码或复制链接即可导入，按系统推荐对应客户端。',
+      'cap.6t': '实时连接状态', 'cap.6p': '仪表盘显示在线会话、上下行与出口信息，授权到账后通常数分钟内自动同步。',
+      'ln.title': '按场景选择线路', 'ln.lede': '一条主路径覆盖日常使用，其余线路按需要启用，互不影响额度与授权。',
+      'ln.rec': '推荐日常', 'ln.gost': '主协议 VLESS + Reality。高端线路经香港入口进入新加坡出口，门户内一键复制或扫码导入。',
+      'ln.cn2t': 'CN2 特快专线', 'ln.cn2p': '按流量单独计费，与套餐时长互不影响。适合对链路质量更敏感的访问场景。',
+      'ln.ispk': '高可信出口', 'ln.ispt': 'ISP 住宅线路', 'ln.ispp': '新加坡高可信度 ISP 出口，独立额度。用尽后可切回主线路，不影响其他路径。',
+      'ln.bak': '备用对照', 'ln.clt': '经典中继', 'ln.clp': '香港中继至新加坡出口，用于对照测试或主线路异常时的切换。',
+      'st.title': '四步开始使用', 'st.lede': '从注册到连接，全程在同一个门户完成。',
+      'st.1t': '创建账户', 'st.1p': '用邮箱注册门户账号，未开通套餐也可以先登录查看状态。',
+      'st.2t': '开通授权', 'st.2p': '按周期购买套餐，或输入已购卡密激活。支持 PayPal、微信与支付宝。',
+      'st.3t': '下载客户端', 'st.3p': 'Windows / Android 使用 Hiddify，iPhone 与 Mac 使用 Streisand。',
+      'st.4t': '导入并连接', 'st.4p': '在连接页扫码或复制链接导入，授权同步后即可使用。',
+      'pl.title': '按使用周期授权', 'pl.lede': '包年包月不限流量。支付完成后系统自动把时长同步到当前账户。',
+      'pl.1m': '1 个月', 'pl.2m': '2 个月', 'pl.q': '一季度', 'pl.h': '半年', 'pl.y': '一年',
+      'pl.unl': '30 天 · 不限流量', 'pl.yv': '365 天 · 平均成本更低', 'pl.rec': '推荐',
+      'pl.m': '当月有效 · 按流量计费', 'pl.note': '价格以门户结算页为准。也可使用站内卡密激活。',
+      'dl.title': '各系统客户端', 'dl.lede': '先安装客户端，再回到门户扫码导入。安装包由官方下载源提供。',
+      'dl.get': '立即下载 →', 'dl.store': '前往下载 →', 'dl.mac': 'Streisand · 需 Apple 芯片 Mac',
+      'fq.title': '常见问题',
+      'fq.1q': '未开通套餐可以登录吗？', 'fq.1a': '可以。登录后即可查看账户与授权状态；连接功能在套餐或卡密生效后开放。',
+      'fq.2q': '支持哪些付款方式？', 'fq.2a': '可直接使用 PayPal；也可在站内购卡页用微信 / 支付宝下单，支付后在同一流程激活卡密。',
+      'fq.3q': '付款后多久生效？', 'fq.3a': '支付或激活成功后，系统会自动同步授权，通常数分钟内生效。',
+      'fq.4q': '授权或支付异常怎么办？', 'fq.4a': '请联系管理员 admin@kennysoftware.cn，说明门户用户名与大致时间即可协助处理。',
+      'end.title': '现在开始使用', 'end.lede': '登录后即可查看授权状态、购买或兑换套餐，并获取连接信息。'
+    },
+    en: {
+      'nav.cap': 'Capability', 'nav.lines': 'Routes', 'nav.plans': 'Plans', 'nav.dl': 'Clients', 'nav.enter': 'Open portal',
+      'hero.live': 'In service', 'hero.ready': 'All routes are ready',
+      'hero.title': 'Stay connected<span>Stay online</span>',
+      'hero.lede': 'Fast, stable access over VLESS. Auth, entitlements, and route management in one portal.',
+      'hero.note': 'You can sign in before purchasing a plan',
+      'cta.enter': 'Open portal', 'cta.create': 'Create account', 'cta.login': 'Sign in',
+      'ov.status': 'Entitlement', 'ov.sub': 'Subscription active · routes ready', 'ov.routes': 'Routes',
+      'ov.avail': 'Uptime', 'ov.term': 'Clients', 'ov.termv': 'All platforms', 'ov.node': 'Exits', 'ov.nodev': 'Multi-egress',
+      'cap.title': 'Built to stay up',
+      'cap.lede': 'No spec theater. Three things that matter every day: connect, control, stay online.',
+      'cap.1t': 'Secure transport', 'cap.1p': 'Encrypted tunnels and identity checks along the whole path — remote work, cross-region access, and private resources.',
+      'cap.2t': 'One console', 'cap.2p': 'Plans, redeem codes, bindings, and live sessions live in the same portal. Entitlement changes show up immediately.',
+      'cap.3t': 'Always-on', 'cap.3p': 'Routes are operated for long-running use, so you spend less time reconnecting and switching by hand.',
+      'cap.4t': 'Multiple exits', 'cap.4p': 'Singapore, Hong Kong, and more. Use the premium path daily; switch to dedicated or fallback when you need it.',
+      'cap.5t': 'Every device', 'cap.5p': 'Windows, Android, iOS, and macOS. Scan or paste from the portal — the right client is suggested per OS.',
+      'cap.6t': 'Live session status', 'cap.6p': 'The dashboard shows online sessions, throughput, and egress. Entitlements usually sync within minutes.',
+      'ln.title': 'Pick a route for the job', 'ln.lede': 'One primary path for daily use. Extra routes turn on when you need them, with separate quotas.',
+      'ln.rec': 'Daily default', 'ln.gost': 'VLESS + Reality. Premium path: Hong Kong entry to a Singapore exit. Copy or scan from the portal.',
+      'ln.cn2t': 'CN2 express', 'ln.cn2p': 'Billed by traffic, independent of plan length. For paths that need cleaner transit.',
+      'ln.ispk': 'High-trust exit', 'ln.ispt': 'Residential ISP', 'ln.ispp': 'Singapore ISP egress with its own quota. Exhaust it and fall back without touching other routes.',
+      'ln.bak': 'Fallback', 'ln.clt': 'Classic relay', 'ln.clp': 'Hong Kong relay into Singapore — for comparison tests or when the primary path needs a break.',
+      'st.title': 'Four steps', 'st.lede': 'From sign-up to connect, everything stays in one portal.',
+      'st.1t': 'Create an account', 'st.1p': 'Register with email. You can sign in and inspect status before buying.',
+      'st.2t': 'Activate access', 'st.2p': 'Buy a term plan or redeem a code. PayPal, WeChat Pay, and Alipay are supported.',
+      'st.3t': 'Install a client', 'st.3p': 'Hiddify on Windows and Android; Streisand on iPhone and Mac.',
+      'st.4t': 'Import and connect', 'st.4p': 'Scan or paste the link from the Connect page once entitlement has synced.',
+      'pl.title': 'Term-based access', 'pl.lede': 'Monthly and yearly plans are unmetered. Duration lands on your account automatically after payment.',
+      'pl.1m': '1 month', 'pl.2m': '2 months', 'pl.q': 'Quarter', 'pl.h': 'Half year', 'pl.y': '1 year',
+      'pl.unl': '30 days · unmetered', 'pl.yv': '365 days · lowest average cost', 'pl.rec': 'Best value',
+      'pl.m': 'Valid this month · metered', 'pl.note': 'Checkout in the portal is authoritative. Redeem codes work there too.',
+      'dl.title': 'Official clients', 'dl.lede': 'Install first, then import from the portal. Packages are served from our download host.',
+      'dl.get': 'Download →', 'dl.store': 'App Store →', 'dl.mac': 'Streisand · Apple silicon Mac',
+      'fq.title': 'FAQ',
+      'fq.1q': 'Can I sign in without a plan?', 'fq.1a': 'Yes. You can inspect account and entitlement status first. Connecting opens after a plan or code is active.',
+      'fq.2q': 'How can I pay?', 'fq.2a': 'PayPal in the portal, or WeChat / Alipay via the in-site card purchase page, then redeem on the same flow.',
+      'fq.3q': 'How fast does access land?', 'fq.3a': 'After payment or redeem, entitlement usually syncs within a few minutes.',
+      'fq.4q': 'What if payment or access looks stuck?', 'fq.4a': 'Email admin@kennysoftware.cn with your portal username and approximate time.',
+      'end.title': 'Start now', 'end.lede': 'Sign in to check entitlement, buy or redeem a plan, and get connection details.'
+    }
+  };
+
+  var lang = localStorage.getItem('ks-lang') === 'en' ? 'en' : 'zh';
+  var btn = document.getElementById('langBtn');
+  function apply(next) {
+    lang = next;
+    localStorage.setItem('ks-lang', lang);
+    document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+    btn.textContent = lang === 'en' ? '中文' : 'EN';
+    var pack = dict[lang];
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var k = el.getAttribute('data-i18n');
+      if (pack[k]) el.textContent = pack[k];
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+      var k = el.getAttribute('data-i18n-html');
+      if (pack[k]) el.innerHTML = pack[k];
+    });
+  }
+  apply(lang);
+  btn.addEventListener('click', function () { apply(lang === 'zh' ? 'en' : 'zh'); });
+})();
+</script>
+</body>
+</html>
