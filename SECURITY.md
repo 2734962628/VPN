@@ -5,6 +5,7 @@ Report account, payment, or impersonation problems to **admin@kennysoftware.cn**
 Official surfaces only:
 
 - https://sg.kennysoftware.com/
+- https://sg.kennysoftware.com/
 - https://2734962628.github.io/VPN/
 - https://github.com/2734962628/VPN
 
