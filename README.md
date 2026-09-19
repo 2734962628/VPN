@@ -21,6 +21,17 @@
 
 </div>
 
+## 官方入口（只认准这些）
+
+| 用途 | 地址 |
+| :--- | :--- |
+| 门户 | https://sg.kennysoftware.com/ |
+| 宣传页 | https://2734962628.github.io/VPN/ |
+| 本仓库 | https://github.com/2734962628/VPN |
+| 管理员 | [admin@kennysoftware.cn](mailto:admin@kennysoftware.cn) |
+
+其他域名、客服号、收款码都不要信。本仓库不接受 Issues / Wiki，以免被仿冒和垃圾信息占用。
+
 ## 特性
 
 | | |
