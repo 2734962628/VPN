@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://2734962628.github.io/VPN/sitemap.xml
